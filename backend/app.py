@@ -20,8 +20,8 @@ def create_app():
     jwt.init_app(app)
 
     # Blueprints get registered here as each module is built
-    # from routes.auth_routes import auth_bp
-    # app.register_blueprint(auth_bp, url_prefix="/api/auth")
+    from routes.auth_routes import auth_bp
+    app.register_blueprint(auth_bp, url_prefix="/api/auth")
 
     with app.app_context():
         db.create_all()  # no Flask-Migrate for this timeline - direct create
