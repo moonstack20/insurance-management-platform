@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
 function Dashboard() {
   const navigate = useNavigate();
@@ -34,6 +34,11 @@ function Dashboard() {
           Role: <span className="capitalize">{user.role}</span>
         </p>
         <p className="text-slate-500 text-sm">Email: {user.email}</p>
+        <div className="mt-4">
+          <Link to="/customers" className="text-teal-600 hover:underline text-sm">
+            View Customers &rarr;
+          </Link>
+        </div>
       </div>
     </div>
   );

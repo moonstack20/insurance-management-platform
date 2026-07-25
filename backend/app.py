@@ -22,6 +22,8 @@ def create_app():
     # Blueprints get registered here as each module is built
     from routes.auth_routes import auth_bp
     app.register_blueprint(auth_bp, url_prefix="/api/auth")
+    from routes.customer_routes import customer_bp
+    app.register_blueprint(customer_bp, url_prefix="/api/customers")
 
     with app.app_context():
         db.create_all()  # no Flask-Migrate for this timeline - direct create
