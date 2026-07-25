@@ -34,9 +34,12 @@ function Dashboard() {
           Role: <span className="capitalize">{user.role}</span>
         </p>
         <p className="text-slate-500 text-sm">Email: {user.email}</p>
-        <div className="mt-4">
+        <div className="mt-4 space-x-4">
           <Link to="/customers" className="text-teal-600 hover:underline text-sm">
             View Customers &rarr;
+          </Link>
+          <Link to="/policies" className="text-teal-600 hover:underline text-sm">
+            View Policies &rarr;
           </Link>
         </div>
       </div>

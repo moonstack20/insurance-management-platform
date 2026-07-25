@@ -24,6 +24,10 @@ def create_app():
     app.register_blueprint(auth_bp, url_prefix="/api/auth")
     from routes.customer_routes import customer_bp
     app.register_blueprint(customer_bp, url_prefix="/api/customers")
+    from routes.policy_routes import policy_bp
+    app.register_blueprint(policy_bp, url_prefix="/api/policies")
+    
+
 
     with app.app_context():
         db.create_all()  # no Flask-Migrate for this timeline - direct create
