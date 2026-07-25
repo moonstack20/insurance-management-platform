@@ -41,6 +41,9 @@ function Dashboard() {
           <Link to="/policies" className="text-teal-600 hover:underline text-sm">
             View Policies &rarr;
           </Link>
+          <Link to="/payments" className="text-teal-600 hover:underline text-sm">
+            View Payments &rarr;
+          </Link>
         </div>
       </div>
     </div>
