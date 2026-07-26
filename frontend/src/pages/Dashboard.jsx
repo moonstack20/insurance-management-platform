@@ -44,10 +44,12 @@ function Dashboard() {
           <Link to="/payments" className="text-teal-600 hover:underline text-sm">
             View Payments &rarr;
           </Link>
+          <Link to="/claims" className="text-teal-600 hover:underline text-sm">
+            View Claims &rarr;
+          </Link>
         </div>
       </div>
     </div>
   );
 }
-
 export default Dashboard;

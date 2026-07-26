@@ -5,6 +5,7 @@ import Dashboard from "./pages/Dashboard";
 import Customers from "./pages/Customers";
 import Policies from "./pages/Policies";
 import Payments from "./pages/Payments";
+import Claims from "./pages/Claims";
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
       <Route path="/customers" element={<Customers />} />
       <Route path="/policies" element={<Policies />} />
       <Route path="/payments" element={<Payments />} />
+      <Route path="/claims" element={<Claims />} />
     </Routes>
   );
 }
