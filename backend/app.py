@@ -30,6 +30,8 @@ def create_app():
     app.register_blueprint(payment_bp, url_prefix="/api/payments")
     from routes.claim_routes import claim_bp
     app.register_blueprint(claim_bp, url_prefix="/api/claims")
+    from routes.document_routes import document_bp
+    app.register_blueprint(document_bp, url_prefix="/api/documents")
 
 
 

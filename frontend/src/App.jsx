@@ -6,6 +6,7 @@ import Customers from "./pages/Customers";
 import Policies from "./pages/Policies";
 import Payments from "./pages/Payments";
 import Claims from "./pages/Claims";
+import Documents from "./pages/Documents";
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
       <Route path="/policies" element={<Policies />} />
       <Route path="/payments" element={<Payments />} />
       <Route path="/claims" element={<Claims />} />
+      <Route path="/documents" element={<Documents />} />
     </Routes>
   );
 }
