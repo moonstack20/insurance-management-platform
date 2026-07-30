@@ -32,6 +32,8 @@ def create_app():
     app.register_blueprint(claim_bp, url_prefix="/api/claims")
     from routes.document_routes import document_bp
     app.register_blueprint(document_bp, url_prefix="/api/documents")
+    from routes.dashboard_routes import dashboard_bp
+    app.register_blueprint(dashboard_bp, url_prefix="/api/dashboard")
 
 
 
