@@ -283,6 +283,38 @@ def generate_summary(claim_id):
     return jsonify({"claim": claim.to_dict()}), 200
 
 
+@claim_bp.route("/<int:claim_id>/summary", methods=["POST"])
+@roles_required("admin", "agent")
+def generate_summary(claim_id):
+    claim = Claim.query.get(claim_id)
+    if not claim:
+        return jsonify({"error": "claim not found"}), 404
+
+    policy = Policy.query.get(claim.policy_id)
+    if not policy:
+        return jsonify({"error": "policy not found"}), 404
+
+    claim.ai_summary = generate_claim_summary(claim, policy)
+    db.session.commit()
+    return jsonify({"claim": claim.to_dict()}), 200
+
+
+@claim_bp.route("/<int:claim_id>/summary", methods=["POST"])
+@roles_required("admin", "agent")
+def generate_summary(claim_id):
+    claim = Claim.query.get(claim_id)
+    if not claim:
+        return jsonify({"error": "claim not found"}), 404
+
+    policy = Policy.query.get(claim.policy_id)
+    if not policy:
+        return jsonify({"error": "policy not found"}), 404
+
+    claim.ai_summary = generate_claim_summary(claim, policy)
+    db.session.commit()
+    return jsonify({"claim": claim.to_dict()}), 200
+
+
 @claim_bp.route("/<int:claim_id>/approve", methods=["POST"])
 @roles_required("admin", "agent")
 def approve_claim(claim_id):

@@ -34,6 +34,8 @@ def create_app():
     app.register_blueprint(document_bp, url_prefix="/api/documents")
     from routes.dashboard_routes import dashboard_bp
     app.register_blueprint(dashboard_bp, url_prefix="/api/dashboard")
+    from routes.search_routes import search_bp
+    app.register_blueprint(search_bp, url_prefix="/api/search")
 
 
 

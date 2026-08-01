@@ -35,6 +35,88 @@ function StatCard({ label, value, sub }) {
   );
 }
 
+function GlobalSearch() {
+  const [query, setQuery] = useState("");
+  const [results, setResults] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (query.trim().length < 2) {
+      setResults(null);
+      return;
+    }
+    setLoading(true);
+    const timer = setTimeout(() => {
+      api
+        .get("/search", { params: { q: query } })
+        .then((res) => setResults(res.data))
+        .catch(() => setResults(null))
+        .finally(() => setLoading(false));
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [query]);
+
+  const hasResults =
+    results &&
+    (results.customers.length || results.policies.length || results.claims.length);
+
+  return (
+    <div className="bg-white rounded-lg shadow-md p-5 mb-6">
+      <input
+        type="text"
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        placeholder="Search customers, policy numbers, claims..."
+        className="w-full border border-slate-200 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+      />
+      {loading && <p className="text-slate-400 text-xs mt-2">Searching...</p>}
+      {results && !loading && !hasResults && query.trim().length >= 2 && (
+        <p className="text-slate-400 text-xs mt-2">No matches found</p>
+      )}
+      {hasResults && (
+        <div className="mt-3 space-y-3">
+          {results.customers.length > 0 && (
+            <div>
+              <p className="text-xs font-semibold text-slate-500 mb-1">Customers</p>
+              <ul className="text-sm text-slate-700 space-y-1">
+                {results.customers.map((c) => (
+                  <li key={`cust-${c.id}`}>
+                    {c.name} — {c.phone || c.email || "no contact"}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {results.policies.length > 0 && (
+            <div>
+              <p className="text-xs font-semibold text-slate-500 mb-1">Policies</p>
+              <ul className="text-sm text-slate-700 space-y-1">
+                {results.policies.map((p) => (
+                  <li key={`pol-${p.id}`}>
+                    {p.policy_number} — {p.policy_type} ({p.status})
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {results.claims.length > 0 && (
+            <div>
+              <p className="text-xs font-semibold text-slate-500 mb-1">Claims</p>
+              <ul className="text-sm text-slate-700 space-y-1">
+                {results.claims.map((c) => (
+                  <li key={`claim-${c.id}`}>
+                    {c.reason} — ₹{c.claim_amount.toLocaleString()} ({c.status})
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function AdminDashboard({ data }) {
   const policyDoughnut = {
     labels: ["Active", "Expired", "Cancelled"],
@@ -100,6 +182,8 @@ function AdminDashboard({ data }) {
 
   return (
     <>
+      <GlobalSearch />
+
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <StatCard label="Total Policies" value={data.policies.total} />
         <StatCard

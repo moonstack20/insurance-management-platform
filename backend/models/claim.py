@@ -15,6 +15,7 @@ class Claim(db.Model):
     # AI risk scoring (Groq) - filled in on Day 7
     risk_level = db.Column(db.String(10), nullable=True)  # Low | Medium | High
     risk_reason = db.Column(db.String(255), nullable=True)
+    ai_summary = db.Column(db.String(500), nullable=True)
 
     def to_dict(self):
         return {
@@ -26,4 +27,5 @@ class Claim(db.Model):
             "submission_date": self.submission_date.isoformat(),
             "risk_level": self.risk_level,
             "risk_reason": self.risk_reason,
+            "ai_summary": self.ai_summary,
         }

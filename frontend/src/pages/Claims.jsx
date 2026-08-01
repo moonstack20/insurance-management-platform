@@ -34,6 +34,7 @@ function Claims() {
   const [showForm, setShowForm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [form, setForm] = useState({ policy_id: "", claim_amount: "", reason: "" });
+  const [summarizingId, setSummarizingId] = useState(null);
 
   const user = JSON.parse(localStorage.getItem("user") || "null");
   const canReview = user && (user.role === "admin" || user.role === "agent");
@@ -125,6 +126,19 @@ function Claims() {
     }
   };
 
+  const handleGenerateSummary = async (id) => {
+    setError("");
+    setSummarizingId(id);
+    try {
+      await api.post(`/claims/${id}/summary`);
+      fetchAll(statusFilter);
+    } catch (err) {
+      setError(err.response?.data?.error || "Failed to generate summary");
+    } finally {
+      setSummarizingId(null);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 p-8">
       <div className="max-w-6xl mx-auto">
@@ -179,6 +193,7 @@ function Claims() {
                   <th className="px-4 py-3">Reason</th>
                   <th className="px-4 py-3">Submitted</th>
                   <th className="px-4 py-3">AI Risk</th>
+                  {canReview && <th className="px-4 py-3">AI Summary</th>}
                   <th className="px-4 py-3">Status</th>
                   {canReview && <th className="px-4 py-3">Actions</th>}
                 </tr>
@@ -206,6 +221,21 @@ function Claims() {
                         </div>
                       )}
                     </td>
+                    {canReview && (
+                      <td className="px-4 py-3 max-w-sm">
+                        {c.ai_summary ? (
+                          <p className="text-xs text-slate-600">{c.ai_summary}</p>
+                        ) : (
+                          <button
+                            onClick={() => handleGenerateSummary(c.id)}
+                            disabled={summarizingId === c.id}
+                            className="text-xs text-teal-600 hover:underline disabled:opacity-50"
+                          >
+                            {summarizingId === c.id ? "Generating..." : "Generate Summary"}
+                          </button>
+                        )}
+                      </td>
+                    )}
                     <td className="px-4 py-3">
                       <span
                         className={`text-xs px-2 py-1 rounded-full capitalize ${STATUS_STYLES[c.status] || ""}`}
