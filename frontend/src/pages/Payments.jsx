@@ -26,6 +26,7 @@ function Payments() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [showForm, setShowForm] = useState(false);
+  const [downloadingId, setDownloadingId] = useState(null);
   const [form, setForm] = useState({
     policy_id: "",
     amount: "",
@@ -110,6 +111,26 @@ function Payments() {
     }
   };
 
+  const handleDownloadReceipt = async (id) => {
+    setError("");
+    setDownloadingId(id);
+    try {
+      const res = await api.get(`/receipts/payment/${id}`, { responseType: "blob" });
+      const url = window.URL.createObjectURL(new Blob([res.data], { type: "application/pdf" }));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `receipt_${id}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      setError("Failed to download receipt");
+    } finally {
+      setDownloadingId(null);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 p-8">
       <div className="max-w-5xl mx-auto">
@@ -188,6 +209,15 @@ function Payments() {
                           className="text-green-600 hover:underline"
                         >
                           Pay Now
+                        </button>
+                      )}
+                      {p.payment_status === "paid" && (
+                        <button
+                          onClick={() => handleDownloadReceipt(p.id)}
+                          disabled={downloadingId === p.id}
+                          className="text-teal-600 hover:underline disabled:opacity-50"
+                        >
+                          {downloadingId === p.id ? "Downloading..." : "Download Receipt"}
                         </button>
                       )}
                       {user.role === "admin" && (
