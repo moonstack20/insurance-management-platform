@@ -9,3 +9,4 @@ from .policy import Policy
 from .claim import Claim
 from .premium_payment import PremiumPayment
 from .document import Document
+from .notification import Notification

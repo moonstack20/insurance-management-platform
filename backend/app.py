@@ -38,6 +38,8 @@ def create_app():
     app.register_blueprint(search_bp, url_prefix="/api/search")
     from routes.receipt_routes import receipt_bp
     app.register_blueprint(receipt_bp, url_prefix="/api/receipts")
+    from routes.notification_routes import notification_bp
+    app.register_blueprint(notification_bp, url_prefix="/api/notifications")
 
 
 

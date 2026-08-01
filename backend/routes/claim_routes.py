@@ -5,6 +5,7 @@ from models.claim import Claim
 from models.policy import Policy
 from routes.decorators import roles_required
 from flask_jwt_extended import jwt_required
+from utils_notify import notify
 
 claim_bp = Blueprint("claims", __name__)
 
@@ -292,6 +293,13 @@ def approve_claim(claim_id):
     if claim.status != "pending":
         return jsonify({"error": "only pending claims can be approved"}), 400
     claim.status = "approved"
+    policy = Policy.query.get(claim.policy_id)
+    notify(f"Claim #{claim.id} approved", "claim_approved")
+    if policy:
+        from models.customer import Customer
+        customer = Customer.query.get(policy.customer_id)
+        if customer and customer.user_id:
+            notify(f"Your claim #{claim.id} has been approved", "claim_approved", user_id=customer.user_id)
     db.session.commit()
     return jsonify({"claim": claim.to_dict()}), 200
 
@@ -305,6 +313,13 @@ def reject_claim(claim_id):
     if claim.status != "pending":
         return jsonify({"error": "only pending claims can be rejected"}), 400
     claim.status = "rejected"
+    policy = Policy.query.get(claim.policy_id)
+    notify(f"Claim #{claim.id} rejected", "claim_rejected")
+    if policy:
+        from models.customer import Customer
+        customer = Customer.query.get(policy.customer_id)
+        if customer and customer.user_id:
+            notify(f"Your claim #{claim.id} has been rejected", "claim_rejected", user_id=customer.user_id)
     db.session.commit()
     return jsonify({"claim": claim.to_dict()}), 200
 

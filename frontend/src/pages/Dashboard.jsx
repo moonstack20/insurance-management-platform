@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import api from "../services/api";
+import NotificationBell from "../components/NotificationBell";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -301,9 +302,12 @@ function Dashboard() {
               <span className="capitalize">{user.role}</span>)
             </p>
           </div>
-          <button onClick={handleLogout} className="text-sm text-red-600 hover:underline">
-            Logout
-          </button>
+          <div className="flex items-center gap-4">
+            <NotificationBell />
+            <button onClick={handleLogout} className="text-sm text-red-600 hover:underline">
+              Logout
+            </button>
+          </div>
         </div>
 
         <div className="mb-6 space-x-4">

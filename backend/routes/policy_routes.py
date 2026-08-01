@@ -6,6 +6,7 @@ from models.policy import Policy
 from models.customer import Customer
 from routes.decorators import roles_required
 from flask_jwt_extended import jwt_required
+from utils_notify import notify
 
 policy_bp = Blueprint("policies", __name__)
 
@@ -71,6 +72,10 @@ def create_policy():
         status="active",
     )
     db.session.add(policy)
+    db.session.flush()
+    notify(f"New policy {policy.policy_number} created for {customer.name}", "policy_created")
+    if customer.user_id:
+        notify(f"Your new policy {policy.policy_number} has been created", "policy_created", user_id=customer.user_id)
     db.session.commit()
     return jsonify({"policy": policy.to_dict()}), 201
 
