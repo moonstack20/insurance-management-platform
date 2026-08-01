@@ -1,13 +1,9 @@
 from flask import Flask, jsonify
 from flask_cors import CORS
-from flask_jwt_extended import JWTManager
-from flask_bcrypt import Bcrypt
 
 from config import Config
 from models import db
-
-bcrypt = Bcrypt()
-jwt = JWTManager()
+from extensions import bcrypt, jwt
 
 
 def create_app():
@@ -53,6 +49,7 @@ def create_app():
     return app
 
 
+app = create_app()
+
 if __name__ == "__main__":
-    app = create_app()
     app.run(debug=True, port=5001)
