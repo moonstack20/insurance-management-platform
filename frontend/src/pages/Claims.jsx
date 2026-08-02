@@ -24,6 +24,56 @@ function formatDateTime(iso) {
   });
 }
 
+function ClaimTimeline({ claim }) {
+  const isRejected = claim.status === "rejected";
+  const isApproved = claim.status === "approved";
+  const aiDone = !!claim.risk_level;
+  const agentDone = claim.status !== "pending";
+
+  const steps = [
+    { label: "Submitted", done: true },
+    { label: "AI Review", done: aiDone },
+    { label: "Agent Review", done: agentDone },
+    {
+      label: isRejected ? "Rejected" : "Approved",
+      done: isApproved || isRejected,
+      isFinal: true,
+      rejected: isRejected,
+    },
+  ];
+
+  return (
+    <div className="flex items-center">
+      {steps.map((step, i) => (
+        <div key={step.label} className="flex items-center">
+          <div className="flex flex-col items-center">
+            <div
+              className={`w-3 h-3 rounded-full ${
+                step.rejected && step.done
+                  ? "bg-red-500"
+                  : step.done
+                  ? "bg-teal-500"
+                  : "bg-slate-200"
+              }`}
+              title={step.label}
+            />
+            <span className="text-[10px] text-slate-500 mt-1 whitespace-nowrap">
+              {step.label}
+            </span>
+          </div>
+          {i < steps.length - 1 && (
+            <div
+              className={`h-0.5 w-6 mb-4 ${
+                steps[i + 1].done ? "bg-teal-400" : "bg-slate-200"
+              }`}
+            />
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function Claims() {
   const navigate = useNavigate();
   const [claims, setClaims] = useState([]);
@@ -140,8 +190,8 @@ function Claims() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 p-8">
-      <div className="max-w-6xl mx-auto">
+    <div className="min-h-screen bg-[#F8FFFC] p-8">
+      <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-6">
           <div>
             <button
@@ -179,7 +229,7 @@ function Claims() {
           </div>
         )}
 
-        <div className="bg-white rounded-lg shadow-md overflow-hidden">
+        <div className="bg-white rounded-lg shadow-md overflow-x-auto">
           {loading ? (
             <p className="p-6 text-slate-500 text-center">Loading...</p>
           ) : claims.length === 0 ? (
@@ -194,6 +244,7 @@ function Claims() {
                   <th className="px-4 py-3">Submitted</th>
                   <th className="px-4 py-3">AI Risk</th>
                   {canReview && <th className="px-4 py-3">AI Summary</th>}
+                  <th className="px-4 py-3">Progress</th>
                   <th className="px-4 py-3">Status</th>
                   {canReview && <th className="px-4 py-3">Actions</th>}
                 </tr>
@@ -236,6 +287,9 @@ function Claims() {
                         )}
                       </td>
                     )}
+                    <td className="px-4 py-3">
+                      <ClaimTimeline claim={c} />
+                    </td>
                     <td className="px-4 py-3">
                       <span
                         className={`text-xs px-2 py-1 rounded-full capitalize ${STATUS_STYLES[c.status] || ""}`}

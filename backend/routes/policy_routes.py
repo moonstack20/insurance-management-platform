@@ -5,7 +5,7 @@ from models import db
 from models.policy import Policy
 from models.customer import Customer
 from routes.decorators import roles_required
-from flask_jwt_extended import jwt_required
+from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
 from utils_notify import notify
 
 policy_bp = Blueprint("policies", __name__)
@@ -83,11 +83,20 @@ def create_policy():
 @policy_bp.route("", methods=["GET"])
 @jwt_required()
 def list_policies():
+    identity = get_jwt_identity()
+    role = get_jwt().get("role")
+
     query = Policy.query
 
-    customer_id = request.args.get("customer_id")
-    if customer_id:
-        query = query.filter_by(customer_id=customer_id)
+    if role == "customer":
+        customer = Customer.query.filter_by(user_id=int(identity)).first()
+        if not customer:
+            return jsonify({"policies": []}), 200
+        query = query.filter_by(customer_id=customer.id)
+    else:
+        customer_id = request.args.get("customer_id")
+        if customer_id:
+            query = query.filter_by(customer_id=customer_id)
 
     status = request.args.get("status")
     if status:
@@ -105,6 +114,14 @@ def get_policy(policy_id):
     policy = Policy.query.get(policy_id)
     if not policy:
         return jsonify({"error": "policy not found"}), 404
+
+    identity = get_jwt_identity()
+    role = get_jwt().get("role")
+    if role == "customer":
+        customer = Customer.query.filter_by(user_id=int(identity)).first()
+        if not customer or policy.customer_id != customer.id:
+            return jsonify({"error": "forbidden"}), 403
+
     return jsonify({"policy": policy.to_dict()}), 200
 
 

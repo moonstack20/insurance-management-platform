@@ -19,6 +19,7 @@ function Policies() {
   const [editingId, setEditingId] = useState(null);
   const [renewingId, setRenewingId] = useState(null);
   const [newEndDate, setNewEndDate] = useState("");
+  const [downloadingId, setDownloadingId] = useState(null);
   const [form, setForm] = useState({
     customer_id: "",
     policy_type: "",
@@ -156,8 +157,28 @@ function Policies() {
     }
   };
 
+  const handleDownloadCertificate = async (id) => {
+    setError("");
+    setDownloadingId(id);
+    try {
+      const res = await api.get(`/receipts/policy/${id}`, { responseType: "blob" });
+      const url = window.URL.createObjectURL(new Blob([res.data], { type: "application/pdf" }));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `certificate_${id}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      setError("Failed to download certificate");
+    } finally {
+      setDownloadingId(null);
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-slate-50 p-8">
+    <div className="min-h-screen bg-[#F8FFFC] p-8">
       <div className="max-w-6xl mx-auto">
         <div className="flex justify-between items-center mb-6">
           <div>
@@ -214,6 +235,7 @@ function Policies() {
                   <th className="px-4 py-3">Start</th>
                   <th className="px-4 py-3">End</th>
                   <th className="px-4 py-3">Status</th>
+                  <th className="px-4 py-3">Certificate</th>
                   {canManage && <th className="px-4 py-3">Actions</th>}
                 </tr>
               </thead>
@@ -232,6 +254,15 @@ function Policies() {
                       >
                         {p.status}
                       </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <button
+                        onClick={() => handleDownloadCertificate(p.id)}
+                        disabled={downloadingId === p.id}
+                        className="text-teal-600 hover:underline text-sm disabled:opacity-50"
+                      >
+                        {downloadingId === p.id ? "Downloading..." : "Download"}
+                      </button>
                     </td>
                     {canManage && (
                       <td className="px-4 py-3 space-x-2 whitespace-nowrap text-sm">

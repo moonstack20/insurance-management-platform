@@ -3,7 +3,7 @@ from datetime import datetime
 from models import db
 from models.customer import Customer
 from routes.decorators import roles_required
-from flask_jwt_extended import jwt_required
+from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
 
 customer_bp = Blueprint("customers", __name__)
 
@@ -15,14 +15,12 @@ def create_customer():
     name = data.get("name", "").strip()
     if not name:
         return jsonify({"error": "name is required"}), 400
-
     dob = None
     if data.get("dob"):
         try:
             dob = datetime.strptime(data["dob"], "%Y-%m-%d").date()
         except ValueError:
             return jsonify({"error": "dob must be in YYYY-MM-DD format"}), 400
-
     customer = Customer(
         name=name,
         dob=dob,
@@ -39,6 +37,13 @@ def create_customer():
 @customer_bp.route("", methods=["GET"])
 @jwt_required()
 def list_customers():
+    identity = get_jwt_identity()
+    role = get_jwt().get("role")
+
+    if role == "customer":
+        customers = Customer.query.filter_by(user_id=int(identity)).all()
+        return jsonify({"customers": [c.to_dict() for c in customers]}), 200
+
     search = request.args.get("search", "").strip()
     query = Customer.query
     if search:
@@ -58,6 +63,12 @@ def get_customer(customer_id):
     customer = Customer.query.get(customer_id)
     if not customer:
         return jsonify({"error": "customer not found"}), 404
+
+    identity = get_jwt_identity()
+    role = get_jwt().get("role")
+    if role == "customer" and customer.user_id != int(identity):
+        return jsonify({"error": "forbidden"}), 403
+
     return jsonify({"customer": customer.to_dict()}), 200
 
 
@@ -67,7 +78,6 @@ def update_customer(customer_id):
     customer = Customer.query.get(customer_id)
     if not customer:
         return jsonify({"error": "customer not found"}), 404
-
     data = request.get_json(silent=True) or {}
     if "name" in data:
         if not data["name"].strip():
@@ -87,7 +97,6 @@ def update_customer(customer_id):
         customer.address = data["address"]
     if "email" in data:
         customer.email = data["email"]
-
     db.session.commit()
     return jsonify({"customer": customer.to_dict()}), 200
 

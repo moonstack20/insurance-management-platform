@@ -3,8 +3,9 @@ from flask import Blueprint, request, jsonify
 from models import db
 from models.premium_payment import PremiumPayment
 from models.policy import Policy
+from models.customer import Customer
 from routes.decorators import roles_required
-from flask_jwt_extended import jwt_required
+from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
 
 payment_bp = Blueprint("payments", __name__)
 
@@ -64,17 +65,26 @@ def create_payment():
 @payment_bp.route("", methods=["GET"])
 @jwt_required()
 def list_payments():
-    query = PremiumPayment.query
+    identity = get_jwt_identity()
+    role = get_jwt().get("role")
 
-    policy_id = request.args.get("policy_id")
-    if policy_id:
-        query = query.filter_by(policy_id=policy_id)
+    query = PremiumPayment.query.join(Policy, PremiumPayment.policy_id == Policy.id)
+
+    if role == "customer":
+        customer = Customer.query.filter_by(user_id=int(identity)).first()
+        if not customer:
+            return jsonify({"payments": []}), 200
+        query = query.filter(Policy.customer_id == customer.id)
+    else:
+        policy_id = request.args.get("policy_id")
+        if policy_id:
+            query = query.filter(PremiumPayment.policy_id == policy_id)
 
     status = request.args.get("payment_status")
     if status:
         if status not in VALID_STATUSES:
             return jsonify({"error": f"payment_status must be one of {sorted(VALID_STATUSES)}"}), 400
-        query = query.filter_by(payment_status=status)
+        query = query.filter(PremiumPayment.payment_status == status)
 
     payments = query.order_by(PremiumPayment.payment_date.desc()).all()
     return jsonify({"payments": [p.to_dict() for p in payments]}), 200
@@ -86,6 +96,15 @@ def get_payment(payment_id):
     payment = PremiumPayment.query.get(payment_id)
     if not payment:
         return jsonify({"error": "payment not found"}), 404
+
+    identity = get_jwt_identity()
+    role = get_jwt().get("role")
+    if role == "customer":
+        customer = Customer.query.filter_by(user_id=int(identity)).first()
+        policy = Policy.query.get(payment.policy_id)
+        if not customer or not policy or policy.customer_id != customer.id:
+            return jsonify({"error": "forbidden"}), 403
+
     return jsonify({"payment": payment.to_dict()}), 200
 
 

@@ -99,3 +99,83 @@ def payment_receipt(payment_id):
         as_attachment=True,
         download_name=f"receipt_{policy.policy_number}_{payment.id}.pdf",
     )
+
+
+@receipt_bp.route("/policy/<int:policy_id>", methods=["GET"])
+@jwt_required()
+def policy_certificate(policy_id):
+    policy = Policy.query.get(policy_id)
+    if not policy:
+        return jsonify({"error": "policy not found"}), 404
+
+    customer = Customer.query.get(policy.customer_id)
+
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(
+        buffer, pagesize=A4,
+        topMargin=25 * mm, bottomMargin=25 * mm,
+        leftMargin=20 * mm, rightMargin=20 * mm,
+    )
+    styles = getSampleStyleSheet()
+    title_style = ParagraphStyle(
+        "TitleStyle", parent=styles["Title"], fontSize=20,
+        textColor=colors.HexColor("#1B4332"),
+    )
+    label_style = ParagraphStyle(
+        "Label", parent=styles["Normal"], textColor=colors.HexColor("#64748b"),
+        fontSize=9,
+    )
+    body_style = ParagraphStyle(
+        "Body", parent=styles["Normal"], textColor=colors.HexColor("#1F2937"),
+        fontSize=11, leading=16,
+    )
+
+    story = []
+    story.append(Paragraph("Policy Certificate", title_style))
+    story.append(Spacer(1, 4 * mm))
+    story.append(Paragraph("Insurance Management Platform", label_style))
+    story.append(Spacer(1, 10 * mm))
+
+    story.append(Paragraph(
+        f"This certifies that <b>{customer.name if customer else '-'}</b> holds an active "
+        f"insurance policy with the following details.",
+        body_style,
+    ))
+    story.append(Spacer(1, 8 * mm))
+
+    info_data = [
+        ["Policy Number", policy.policy_number],
+        ["Policy Type", policy.policy_type],
+        ["Policyholder", customer.name if customer else "-"],
+        ["Coverage Start Date", policy.start_date.strftime("%d %b %Y")],
+        ["Coverage End Date", policy.end_date.strftime("%d %b %Y")],
+        ["Premium Amount", f"INR {float(policy.premium_amount):,.2f}"],
+        ["Status", policy.status.capitalize()],
+        ["Certificate Issued", date.today().strftime("%d %b %Y")],
+    ]
+    info_table = Table(info_data, colWidths=[55 * mm, 95 * mm])
+    info_table.setStyle(TableStyle([
+        ("FONTSIZE", (0, 0), (-1, -1), 10),
+        ("TEXTCOLOR", (0, 0), (0, -1), colors.HexColor("#475569")),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
+        ("TOPPADDING", (0, 0), (-1, -1), 8),
+        ("LINEBELOW", (0, 0), (-1, -1), 0.5, colors.HexColor("#e2e8f0")),
+    ]))
+    story.append(info_table)
+    story.append(Spacer(1, 15 * mm))
+
+    story.append(Paragraph(
+        "This certificate confirms policy coverage as of the issue date above and is "
+        "system-generated. It does not require a signature.",
+        label_style,
+    ))
+
+    doc.build(story)
+    buffer.seek(0)
+
+    return send_file(
+        buffer,
+        mimetype="application/pdf",
+        as_attachment=True,
+        download_name=f"certificate_{policy.policy_number}.pdf",
+    )

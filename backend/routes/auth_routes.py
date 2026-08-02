@@ -1,12 +1,15 @@
+import re
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity, get_jwt
 from models import db
 from models.user import User
+from models.customer import Customer
 from extensions import bcrypt
 
 auth_bp = Blueprint("auth", __name__)
 
 VALID_ROLES = {"admin", "agent", "customer"}
+NAME_PATTERN = re.compile(r"^[A-Za-z][A-Za-z\s.'-]*$")
 
 
 @auth_bp.route("/register", methods=["POST"])
@@ -19,6 +22,8 @@ def register():
 
     if not name or not email or not password:
         return jsonify({"error": "name, email, and password are required"}), 400
+    if not NAME_PATTERN.match(name):
+        return jsonify({"error": "name can only contain letters, spaces, and characters like ' or -"}), 400
 
     if role not in VALID_ROLES:
         return jsonify({"error": f"role must be one of {sorted(VALID_ROLES)}"}), 400
@@ -29,6 +34,12 @@ def register():
     password_hash = bcrypt.generate_password_hash(password).decode("utf-8")
     user = User(name=name, email=email, password_hash=password_hash, role=role)
     db.session.add(user)
+    db.session.flush()
+
+    if role == "customer":
+        customer = Customer(user_id=user.id, name=name, email=email)
+        db.session.add(customer)
+
     db.session.commit()
 
     token = create_access_token(

@@ -6,7 +6,7 @@ from models import db
 from models.document import Document
 from models.customer import Customer
 from routes.decorators import roles_required
-from flask_jwt_extended import jwt_required
+from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
 
 document_bp = Blueprint("documents", __name__)
 
@@ -79,10 +79,21 @@ def upload_document():
 @document_bp.route("", methods=["GET"])
 @jwt_required()
 def list_documents():
+    identity = get_jwt_identity()
+    role = get_jwt().get("role")
+
     query = Document.query
-    customer_id = request.args.get("customer_id")
-    if customer_id:
-        query = query.filter_by(customer_id=customer_id)
+
+    if role == "customer":
+        customer = Customer.query.filter_by(user_id=int(identity)).first()
+        if not customer:
+            return jsonify({"documents": []}), 200
+        query = query.filter_by(customer_id=customer.id)
+    else:
+        customer_id = request.args.get("customer_id")
+        if customer_id:
+            query = query.filter_by(customer_id=customer_id)
+
     documents = query.order_by(Document.uploaded_at.desc()).all()
     return jsonify({"documents": [d.to_dict() for d in documents]}), 200
 
@@ -93,6 +104,13 @@ def get_download_url(document_id):
     document = Document.query.get(document_id)
     if not document:
         return jsonify({"error": "document not found"}), 404
+
+    identity = get_jwt_identity()
+    role = get_jwt().get("role")
+    if role == "customer":
+        customer = Customer.query.filter_by(user_id=int(identity)).first()
+        if not customer or document.customer_id != customer.id:
+            return jsonify({"error": "forbidden"}), 403
 
     try:
         supabase = get_supabase_client()

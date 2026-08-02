@@ -36,6 +36,60 @@ function StatCard({ label, value, sub }) {
   );
 }
 
+function getGreeting() {
+  const hour = new Date().getHours();
+  if (hour < 12) return "Good morning";
+  if (hour < 17) return "Good afternoon";
+  return "Good evening";
+}
+
+function timeAgo(iso) {
+  const diffMs = Date.now() - new Date(iso).getTime();
+  const mins = Math.floor(diffMs / 60000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  return `${days}d ago`;
+}
+
+function ActivityFeed() {
+  const [activity, setActivity] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    api
+      .get("/notifications")
+      .then((res) => setActivity(res.data.notifications))
+      .catch(() => setActivity([]))
+      .finally(() => setLoading(false));
+  }, []);
+
+  return (
+    <div className="bg-white rounded-lg shadow-md p-5">
+      <h2 className="text-sm font-semibold text-slate-600 mb-3">Recent Activity</h2>
+      {loading ? (
+        <p className="text-slate-400 text-sm">Loading...</p>
+      ) : activity.length === 0 ? (
+        <p className="text-slate-400 text-sm">No recent activity yet.</p>
+      ) : (
+        <ul className="space-y-3">
+          {activity.slice(0, 6).map((a) => (
+            <li key={a.id} className="flex items-start gap-2 text-sm">
+              <span className="mt-1 w-1.5 h-1.5 rounded-full bg-teal-500 flex-shrink-0" />
+              <div>
+                <p className="text-slate-700">{a.message}</p>
+                <p className="text-xs text-slate-400">{timeAgo(a.created_at)}</p>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
 function GlobalSearch() {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState(null);
@@ -184,6 +238,9 @@ function AdminDashboard({ data }) {
   return (
     <>
       <GlobalSearch />
+      <div className="mb-6">
+        <ActivityFeed />
+      </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <StatCard label="Total Policies" value={data.policies.total} />
@@ -230,6 +287,10 @@ function AdminDashboard({ data }) {
 function CustomerDashboard({ data }) {
   return (
     <>
+      <div className="mb-6">
+        <ActivityFeed />
+      </div>
+
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <StatCard label="Total Policies" value={data.policies.total} />
         <StatCard label="Active Policies" value={data.policies.active} />
@@ -292,14 +353,15 @@ function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 p-8">
+    <div className="min-h-screen bg-[#F8FFFC] p-8">
       <div className="max-w-6xl mx-auto">
         <div className="flex justify-between items-center mb-6">
           <div>
-            <h1 className="text-2xl font-semibold text-navy-700">Dashboard</h1>
+            <h1 className="text-2xl font-semibold text-navy-700">
+              {getGreeting()}, {user.name} 👋
+            </h1>
             <p className="text-slate-500 text-sm">
-              Welcome, <span className="font-medium">{user.name}</span> (
-              <span className="capitalize">{user.role}</span>)
+              <span className="capitalize">{user.role}</span> dashboard
             </p>
           </div>
           <div className="flex items-center gap-4">
@@ -311,9 +373,11 @@ function Dashboard() {
         </div>
 
         <div className="mb-6 space-x-4">
-          <Link to="/customers" className="text-teal-600 hover:underline text-sm">
-            View Customers &rarr;
-          </Link>
+          {user.role !== "customer" && (
+            <Link to="/customers" className="text-teal-600 hover:underline text-sm">
+              View Customers &rarr;
+            </Link>
+          )}
           <Link to="/policies" className="text-teal-600 hover:underline text-sm">
             View Policies &rarr;
           </Link>

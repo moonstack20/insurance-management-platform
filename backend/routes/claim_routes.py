@@ -3,8 +3,9 @@ from flask import Blueprint, request, jsonify
 from models import db
 from models.claim import Claim
 from models.policy import Policy
+from models.customer import Customer
 from routes.decorators import roles_required
-from flask_jwt_extended import jwt_required
+from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
 from utils_notify import notify
 
 claim_bp = Blueprint("claims", __name__)
@@ -111,94 +112,6 @@ def generate_claim_summary(claim, policy):
     )
 
 
-def generate_claim_summary(claim, policy):
-    """Call Groq to produce a short human-readable claim summary + recommendation.
-    Falls back to a simple templated summary if Groq is unavailable."""
-    api_key = os.environ.get("GROQ_API_KEY")
-    if api_key:
-        try:
-            from groq import Groq
-
-            client = Groq(api_key=api_key)
-            response = client.chat.completions.create(
-                model="llama-3.3-70b-versatile",
-                messages=[
-                    {
-                        "role": "system",
-                        "content": (
-                            "You are an insurance claims assistant. Given claim details, "
-                            "write a concise 2-3 sentence summary covering what happened, "
-                            "whether coverage looks available, and a recommendation "
-                            "(Approve, Reject, or Needs Review). Plain text, no markdown."
-                        ),
-                    },
-                    {
-                        "role": "user",
-                        "content": (
-                            f"Policy type: {policy.policy_type}, Premium: {policy.premium_amount}, "
-                            f"Claim amount: {claim.claim_amount}, Reason: {claim.reason}, "
-                            f"Risk level: {claim.risk_level}"
-                        ),
-                    },
-                ],
-                max_tokens=120,
-                timeout=8,
-            )
-            return response.choices[0].message.content.strip()[:500]
-        except Exception:
-            pass
-
-    return (
-        f"Claim of {claim.claim_amount} filed for '{claim.reason}' under a "
-        f"{policy.policy_type} policy. Risk level: {claim.risk_level or 'Unassessed'}. "
-        f"Recommendation: Needs Review."
-    )
-
-
-def generate_claim_summary(claim, policy):
-    """Call Groq to produce a short human-readable claim summary + recommendation.
-    Falls back to a simple templated summary if Groq is unavailable."""
-    api_key = os.environ.get("GROQ_API_KEY")
-    if api_key:
-        try:
-            from groq import Groq
-
-            client = Groq(api_key=api_key)
-            response = client.chat.completions.create(
-                model="llama-3.3-70b-versatile",
-                messages=[
-                    {
-                        "role": "system",
-                        "content": (
-                            "You are an insurance claims assistant. Given claim details, "
-                            "write a concise 2-3 sentence summary covering what happened, "
-                            "whether coverage looks available, and a recommendation "
-                            "(Approve, Reject, or Needs Review). Plain text, no markdown."
-                        ),
-                    },
-                    {
-                        "role": "user",
-                        "content": (
-                            f"Policy type: {policy.policy_type}, Premium: {policy.premium_amount}, "
-                            f"Claim amount: {claim.claim_amount}, Reason: {claim.reason}, "
-                            f"Risk level: {claim.risk_level}"
-                        ),
-                    },
-                ],
-                max_tokens=120,
-                timeout=8,
-            )
-            return response.choices[0].message.content.strip()[:500]
-        except Exception:
-            pass
-
-    return (
-        f"Claim of {claim.claim_amount} filed for '{claim.reason}' under a "
-        f"{policy.policy_type} policy. Risk level: {claim.risk_level or 'Unassessed'}. "
-        f"Recommendation: Needs Review."
-    )
-
-
 @claim_bp.route("", methods=["POST"])
 @jwt_required()
 def submit_claim():
@@ -243,17 +156,26 @@ def submit_claim():
 @claim_bp.route("", methods=["GET"])
 @jwt_required()
 def list_claims():
-    query = Claim.query
+    identity = get_jwt_identity()
+    role = get_jwt().get("role")
 
-    policy_id = request.args.get("policy_id")
-    if policy_id:
-        query = query.filter_by(policy_id=policy_id)
+    query = Claim.query.join(Policy, Claim.policy_id == Policy.id)
+
+    if role == "customer":
+        customer = Customer.query.filter_by(user_id=int(identity)).first()
+        if not customer:
+            return jsonify({"claims": []}), 200
+        query = query.filter(Policy.customer_id == customer.id)
+    else:
+        policy_id = request.args.get("policy_id")
+        if policy_id:
+            query = query.filter(Claim.policy_id == policy_id)
 
     status = request.args.get("status")
     if status:
         if status not in VALID_STATUSES:
             return jsonify({"error": f"status must be one of {sorted(VALID_STATUSES)}"}), 400
-        query = query.filter_by(status=status)
+        query = query.filter(Claim.status == status)
 
     claims = query.order_by(Claim.submission_date.desc()).all()
     return jsonify({"claims": [c.to_dict() for c in claims]}), 200
@@ -265,6 +187,15 @@ def get_claim(claim_id):
     claim = Claim.query.get(claim_id)
     if not claim:
         return jsonify({"error": "claim not found"}), 404
+
+    identity = get_jwt_identity()
+    role = get_jwt().get("role")
+    if role == "customer":
+        customer = Customer.query.filter_by(user_id=int(identity)).first()
+        policy = Policy.query.get(claim.policy_id)
+        if not customer or not policy or policy.customer_id != customer.id:
+            return jsonify({"error": "forbidden"}), 403
+
     return jsonify({"claim": claim.to_dict()}), 200
 
 
@@ -296,7 +227,6 @@ def approve_claim(claim_id):
     policy = Policy.query.get(claim.policy_id)
     notify(f"Claim #{claim.id} approved", "claim_approved")
     if policy:
-        from models.customer import Customer
         customer = Customer.query.get(policy.customer_id)
         if customer and customer.user_id:
             notify(f"Your claim #{claim.id} has been approved", "claim_approved", user_id=customer.user_id)
@@ -316,7 +246,6 @@ def reject_claim(claim_id):
     policy = Policy.query.get(claim.policy_id)
     notify(f"Claim #{claim.id} rejected", "claim_rejected")
     if policy:
-        from models.customer import Customer
         customer = Customer.query.get(policy.customer_id)
         if customer and customer.user_id:
             notify(f"Your claim #{claim.id} has been rejected", "claim_rejected", user_id=customer.user_id)
