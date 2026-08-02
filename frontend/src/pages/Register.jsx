@@ -43,7 +43,7 @@ function Register() {
   };
 
   return (
-    <div className="min-h-screen flex bg-[#F8FFFC]">
+    <div className="min-h-screen flex bg-[#FAF6EE]">
       {/* Hero panel */}
       <div
         className="hidden lg:flex lg:w-1/2 flex-col justify-between p-12 text-white relative overflow-hidden"

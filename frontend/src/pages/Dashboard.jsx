@@ -353,7 +353,7 @@ function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F8FFFC] p-8">
+    <div className="min-h-screen bg-[#FAF6EE] p-8">
       <div className="max-w-6xl mx-auto">
         <div className="flex justify-between items-center mb-6">
           <div>
@@ -372,23 +372,53 @@ function Dashboard() {
           </div>
         </div>
 
-        <div className="mb-6 space-x-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 mb-6">
           {user.role !== "customer" && (
-            <Link to="/customers" className="text-teal-600 hover:underline text-sm">
-              View Customers &rarr;
+            <Link
+              to="/customers"
+              className="bg-white rounded-lg shadow-sm hover:shadow-md transition p-4 flex flex-col items-center text-center gap-2"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-1.13a4 4 0 10-4-4 4 4 0 004 4zm6 0a4 4 0 10-4-4" />
+              </svg>
+              <span className="text-xs font-medium text-slate-700">Customers</span>
             </Link>
           )}
-          <Link to="/policies" className="text-teal-600 hover:underline text-sm">
-            View Policies &rarr;
+          <Link
+            to="/policies"
+            className="bg-white rounded-lg shadow-sm hover:shadow-md transition p-4 flex flex-col items-center text-center gap-2"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            <span className="text-xs font-medium text-slate-700">My Policies</span>
           </Link>
-          <Link to="/payments" className="text-teal-600 hover:underline text-sm">
-            View Payments &rarr;
+          <Link
+            to="/payments"
+            className="bg-white rounded-lg shadow-sm hover:shadow-md transition p-4 flex flex-col items-center text-center gap-2"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 10h18M7 15h1m4 0h1m-7 4h12a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+            </svg>
+            <span className="text-xs font-medium text-slate-700">Pay Premium</span>
           </Link>
-          <Link to="/claims" className="text-teal-600 hover:underline text-sm">
-            View Claims &rarr;
+          <Link
+            to="/claims"
+            className="bg-white rounded-lg shadow-sm hover:shadow-md transition p-4 flex flex-col items-center text-center gap-2"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+            <span className="text-xs font-medium text-slate-700">Submit Claim</span>
           </Link>
-          <Link to="/documents" className="text-teal-600 hover:underline text-sm">
-            View Documents &rarr;
+          <Link
+            to="/documents"
+            className="bg-white rounded-lg shadow-sm hover:shadow-md transition p-4 flex flex-col items-center text-center gap-2"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+              </svg>
+            <span className="text-xs font-medium text-slate-700">Documents</span>
           </Link>
         </div>
 

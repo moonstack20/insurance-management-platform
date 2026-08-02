@@ -96,7 +96,7 @@ function Customers() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FFFC] p-8">
+    <div className="min-h-screen bg-[#FAF6EE] p-8">
       <div className="max-w-5xl mx-auto">
         <div className="flex justify-between items-center mb-6">
           <div>
