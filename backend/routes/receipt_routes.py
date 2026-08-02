@@ -101,6 +101,18 @@ def payment_receipt(payment_id):
     )
 
 
+def _certificate_border(canvas, doc):
+    canvas.saveState()
+    canvas.setStrokeColor(colors.HexColor("#2D6A4F"))
+    canvas.setLineWidth(1.2)
+    margin = 10 * mm
+    canvas.rect(
+        margin, margin,
+        A4[0] - 2 * margin, A4[1] - 2 * margin,
+    )
+    canvas.restoreState()
+
+
 @receipt_bp.route("/policy/<int:policy_id>", methods=["GET"])
 @jwt_required()
 def policy_certificate(policy_id):
@@ -114,12 +126,20 @@ def policy_certificate(policy_id):
     doc = SimpleDocTemplate(
         buffer, pagesize=A4,
         topMargin=25 * mm, bottomMargin=25 * mm,
-        leftMargin=20 * mm, rightMargin=20 * mm,
+        leftMargin=22 * mm, rightMargin=22 * mm,
     )
     styles = getSampleStyleSheet()
+    eyebrow_style = ParagraphStyle(
+        "Eyebrow", parent=styles["Normal"], textColor=colors.HexColor("#2D6A4F"),
+        fontSize=10, spaceAfter=2, fontName="Helvetica-Bold",
+    )
     title_style = ParagraphStyle(
-        "TitleStyle", parent=styles["Title"], fontSize=20,
+        "TitleStyle", parent=styles["Title"], fontSize=22,
         textColor=colors.HexColor("#1B4332"),
+    )
+    subtitle_style = ParagraphStyle(
+        "Subtitle", parent=styles["Normal"], textColor=colors.HexColor("#40916C"),
+        fontSize=13, fontName="Helvetica-Bold",
     )
     label_style = ParagraphStyle(
         "Label", parent=styles["Normal"], textColor=colors.HexColor("#64748b"),
@@ -131,26 +151,42 @@ def policy_certificate(policy_id):
     )
 
     story = []
-    story.append(Paragraph("Policy Certificate", title_style))
-    story.append(Spacer(1, 4 * mm))
-    story.append(Paragraph("Insurance Management Platform", label_style))
+    story.append(Paragraph("INSURANCE MANAGEMENT PLATFORM", eyebrow_style))
+    story.append(Paragraph("POLICY CERTIFICATE", title_style))
+    story.append(Paragraph(policy.policy_type, subtitle_style))
     story.append(Spacer(1, 10 * mm))
 
+    holder_name = customer.name if customer else "-"
     story.append(Paragraph(
-        f"This certifies that <b>{customer.name if customer else '-'}</b> holds an active "
-        f"insurance policy with the following details.",
+        f"This certificate confirms that <b>{holder_name}</b> is covered under the "
+        f"insurance policy detailed below. The policy is valid as of the certificate "
+        f"issue date and has been generated electronically by the Insurance "
+        f"Management Platform.",
         body_style,
     ))
     story.append(Spacer(1, 8 * mm))
 
+    status_color = {
+        "active": colors.HexColor("#2D6A4F"),
+        "expired": colors.HexColor("#E9C46A"),
+        "cancelled": colors.HexColor("#BC4749"),
+    }.get(policy.status, colors.HexColor("#64748b"))
+
+    coverage_display = (
+        f"INR {float(policy.coverage_amount):,.2f}"
+        if policy.coverage_amount else "Not specified"
+    )
+
     info_data = [
+        ["Certificate No.", f"CERT-{date.today().year}-{policy.id:06d}"],
         ["Policy Number", policy.policy_number],
+        ["Policyholder", holder_name],
+        ["Customer ID", f"CUST-{policy.customer_id:04d}"],
         ["Policy Type", policy.policy_type],
-        ["Policyholder", customer.name if customer else "-"],
+        ["Coverage Amount", coverage_display],
+        ["Premium Amount", f"INR {float(policy.premium_amount):,.2f}"],
         ["Coverage Start Date", policy.start_date.strftime("%d %b %Y")],
         ["Coverage End Date", policy.end_date.strftime("%d %b %Y")],
-        ["Premium Amount", f"INR {float(policy.premium_amount):,.2f}"],
-        ["Status", policy.status.capitalize()],
         ["Certificate Issued", date.today().strftime("%d %b %Y")],
     ]
     info_table = Table(info_data, colWidths=[55 * mm, 95 * mm])
@@ -162,15 +198,40 @@ def policy_certificate(policy_id):
         ("LINEBELOW", (0, 0), (-1, -1), 0.5, colors.HexColor("#e2e8f0")),
     ]))
     story.append(info_table)
+    story.append(Spacer(1, 6 * mm))
+
+    status_table = Table(
+        [["Status", policy.status.upper()]],
+        colWidths=[55 * mm, 95 * mm],
+    )
+    status_table.setStyle(TableStyle([
+        ("FONTSIZE", (0, 0), (-1, -1), 10),
+        ("TEXTCOLOR", (0, 0), (0, 0), colors.HexColor("#475569")),
+        ("TEXTCOLOR", (1, 0), (1, 0), colors.white),
+        ("BACKGROUND", (1, 0), (1, 0), status_color),
+        ("FONTNAME", (1, 0), (1, 0), "Helvetica-Bold"),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
+        ("TOPPADDING", (0, 0), (-1, -1), 8),
+        ("LEFTPADDING", (1, 0), (1, 0), 8),
+    ]))
+    story.append(status_table)
     story.append(Spacer(1, 15 * mm))
 
     story.append(Paragraph(
-        "This certificate confirms policy coverage as of the issue date above and is "
-        "system-generated. It does not require a signature.",
+        "✔ Digitally Verified — Insurance Management Platform",
+        ParagraphStyle(
+            "Seal", parent=label_style, textColor=colors.HexColor("#2D6A4F"),
+            fontName="Helvetica-Bold", fontSize=9,
+        ),
+    ))
+    story.append(Spacer(1, 3 * mm))
+    story.append(Paragraph(
+        "This certificate is digitally generated by the Insurance Management "
+        "Platform and does not require a signature.",
         label_style,
     ))
 
-    doc.build(story)
+    doc.build(story, onFirstPage=_certificate_border, onLaterPages=_certificate_border)
     buffer.seek(0)
 
     return send_file(

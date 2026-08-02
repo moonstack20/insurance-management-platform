@@ -62,11 +62,21 @@ def create_policy():
     while Policy.query.filter_by(policy_number=policy_number).first():
         policy_number = generate_policy_number()
 
+    coverage_amount = data.get("coverage_amount")
+    if coverage_amount is not None:
+        try:
+            coverage_amount = float(coverage_amount)
+            if coverage_amount <= 0:
+                raise ValueError
+        except (ValueError, TypeError):
+            return jsonify({"error": "coverage_amount must be a positive number"}), 400
+
     policy = Policy(
         customer_id=customer_id,
         policy_type=policy_type,
         policy_number=policy_number,
         premium_amount=premium_amount,
+        coverage_amount=coverage_amount,
         start_date=start_date,
         end_date=end_date,
         status="active",
@@ -147,6 +157,15 @@ def update_policy(policy_id):
             policy.premium_amount = amount
         except (ValueError, TypeError):
             return jsonify({"error": "premium_amount must be a positive number"}), 400
+
+    if "coverage_amount" in data:
+        try:
+            cov = float(data["coverage_amount"])
+            if cov <= 0:
+                raise ValueError
+            policy.coverage_amount = cov
+        except (ValueError, TypeError):
+            return jsonify({"error": "coverage_amount must be a positive number"}), 400
 
     if "start_date" in data:
         try:
