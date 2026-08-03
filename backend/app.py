@@ -36,6 +36,8 @@ def create_app():
     app.register_blueprint(receipt_bp, url_prefix="/api/receipts")
     from routes.notification_routes import notification_bp
     app.register_blueprint(notification_bp, url_prefix="/api/notifications")
+    from routes.policy_application_routes import policy_application_bp
+    app.register_blueprint(policy_application_bp, url_prefix="/api/policy-applications")
 
 
 

@@ -7,6 +7,8 @@ import Policies from "./pages/Policies";
 import Payments from "./pages/Payments";
 import Claims from "./pages/Claims";
 import Documents from "./pages/Documents";
+import ApplyPolicy from "./pages/ApplyPolicy";
+import PolicyApplications from "./pages/PolicyApplications";
 
 function App() {
   return (
@@ -20,6 +22,8 @@ function App() {
       <Route path="/payments" element={<Payments />} />
       <Route path="/claims" element={<Claims />} />
       <Route path="/documents" element={<Documents />} />
+      <Route path="/apply-policy" element={<ApplyPolicy />} />
+      <Route path="/policy-applications" element={<PolicyApplications />} />
     </Routes>
   );
 }
