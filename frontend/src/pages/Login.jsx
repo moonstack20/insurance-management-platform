@@ -32,49 +32,65 @@ function Login() {
     <div className="min-h-screen flex bg-[#FAF6EE]">
       {/* Hero panel */}
       <div
-        className="hidden lg:flex lg:w-1/2 flex-col justify-between p-12 text-white relative overflow-hidden"
+        className="hidden lg:flex lg:w-1/2 flex-col justify-between p-12 text-white relative overflow-hidden animate-fadein"
         style={{ background: "linear-gradient(135deg, #1B4332, #2D6A4F)" }}
       >
         <div className="relative z-10">
-          <div className="flex items-center gap-2 mb-16">
+          <div className="flex items-center gap-2 mb-12">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
             </svg>
             <span className="text-xl font-semibold tracking-wide">InsureSure</span>
           </div>
-          <h1 className="text-4xl font-bold leading-tight mb-4">
-            Protect What Matters.
+          <h1 className="text-4xl font-bold leading-tight mb-3">
+            Smart Insurance Management, Powered by AI
           </h1>
-          <p className="text-lg text-mint-100 max-w-md leading-relaxed" style={{ color: "#D8F3DC" }}>
+          <p className="text-lg max-w-md leading-relaxed mb-6" style={{ color: "#D8F3DC" }}>
             Manage policies, track claims, and stay on top of every premium
-            — all powered by AI-driven insights.
+            — all in one secure place.
+          </p>
+
+          <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm mb-10" style={{ color: "#D8F3DC" }}>
+            <span>✓ AI Claim Review</span>
+            <span>✓ Secure Authentication</span>
+            <span>✓ Document Vault</span>
+            <span>✓ Real-Time Tracking</span>
+          </div>
+
+          <div className="grid grid-cols-3 gap-3">
+            <div className="bg-white/10 rounded-lg p-3">
+              <p className="text-lg mb-1">🛡️</p>
+              <p className="text-sm font-semibold text-white">Secure</p>
+              <p className="text-xs" style={{ color: "#95D5B2" }}>JWT Authentication</p>
+            </div>
+            <div className="bg-white/10 rounded-lg p-3">
+              <p className="text-lg mb-1">🤖</p>
+              <p className="text-sm font-semibold text-white">AI</p>
+              <p className="text-xs" style={{ color: "#95D5B2" }}>Claim Risk Analysis</p>
+            </div>
+            <div className="bg-white/10 rounded-lg p-3">
+              <p className="text-lg mb-1">⚡</p>
+              <p className="text-sm font-semibold text-white">Fast</p>
+              <p className="text-xs" style={{ color: "#95D5B2" }}>Real-Time Updates</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="relative z-10 flex items-center justify-between">
+          <p className="text-xs" style={{ color: "#95D5B2" }}>🚀 Live Demo Ready</p>
+          <p className="text-xs" style={{ color: "#95D5B2" }}>
+            © 2026 InsureSure · Powered by Groq AI
           </p>
         </div>
 
-        <div className="relative z-10 flex gap-8 text-sm" style={{ color: "#95D5B2" }}>
-          <div>
-            <p className="text-2xl font-semibold text-white">AI</p>
-            <p>Risk Scoring</p>
-          </div>
-          <div>
-            <p className="text-2xl font-semibold text-white">Real-time</p>
-            <p>Claim Tracking</p>
-          </div>
-          <div>
-            <p className="text-2xl font-semibold text-white">Secure</p>
-            <p>Document Vault</p>
-          </div>
-        </div>
-
-        {/* Decorative background shapes */}
-        <div className="absolute -bottom-24 -right-24 w-96 h-96 rounded-full opacity-10 bg-white" />
-        <div className="absolute top-1/3 -left-16 w-64 h-64 rounded-full opacity-10 bg-white" />
+        <div className="absolute -bottom-24 -right-24 w-96 h-96 rounded-full opacity-[0.08] bg-white" />
+        <div className="absolute top-1/3 -left-16 w-64 h-64 rounded-full opacity-[0.08] bg-white" />
       </div>
 
       {/* Form panel */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-8">
-        <div className="w-full max-w-sm">
-          <div className="lg:hidden flex items-center gap-2 mb-8 justify-center">
+        <div className="w-full max-w-sm bg-white rounded-[18px] shadow-lg p-8 animate-slideup">
+          <div className="lg:hidden flex items-center gap-2 mb-6 justify-center">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7 text-navy-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
             </svg>
@@ -82,7 +98,7 @@ function Login() {
           </div>
 
           <h2 className="text-2xl font-semibold text-navy-700 mb-1 text-center lg:text-left">
-            Welcome back
+            Welcome Back
           </h2>
           <p className="text-sm text-slate-500 mb-6 text-center lg:text-left">
             Sign in to manage your policies and claims
@@ -96,7 +112,7 @@ function Login() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">
-                Email
+                📧 Email
               </label>
               <input
                 type="email"
@@ -104,12 +120,12 @@ function Login() {
                 value={form.email}
                 onChange={handleChange}
                 required
-                className="w-full border border-slate-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                className="w-full border border-slate-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500 transition"
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">
-                Password
+                🔒 Password
               </label>
               <input
                 type="password"
@@ -117,16 +133,16 @@ function Login() {
                 value={form.password}
                 onChange={handleChange}
                 required
-                className="w-full border border-slate-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                className="w-full border border-slate-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500 transition"
               />
             </div>
             <button
               type="submit"
               disabled={loading}
-              className="w-full text-white py-2 rounded transition disabled:opacity-50"
+              className="w-full text-white py-2 rounded transition disabled:opacity-50 hover:brightness-110"
               style={{ background: "linear-gradient(90deg, #2D6A4F, #40916C)" }}
             >
-              {loading ? "Signing in..." : "Sign In"}
+              {loading ? "Signing In... ⏳" : "🔐 Sign In"}
             </button>
           </form>
           <p className="text-sm text-slate-600 text-center mt-4">
